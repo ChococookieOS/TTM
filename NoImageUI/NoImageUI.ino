@@ -10,6 +10,7 @@ Ucglib_ILI9341_18x240x320_HWSPI ucg(/*cd=*/ 10, /*cs=*/ 9, /*reset=*/ 8);
 //              TCLK,TCS,TDIN,TDO,TIRQ
 URTouch myTouch(2, 3, 4, 5, 6);
 
+//Enum which determens the current Screen
 enum screens {
   START,
   TIMESELECT,
