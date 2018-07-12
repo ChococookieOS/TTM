@@ -18,7 +18,7 @@ const byte T_DIN = 4;
 const byte T_DO = 5;
 const byte T_IRQ = 6;
 
-const byte RELAIS_MOTOR = 0;
+const byte RELAIS_MOTOR = 18;
 const byte RELAIS_HEAT = 0;
 const byte RELAIS_FAN = 0;
 const byte RELAIS_LED = 0;
@@ -232,7 +232,7 @@ void loop(void){
         			if(y < SCREEN_HEIGHT/2){
           				//3H
           				timeRemaining = 3 * 60;
-          				pinMode(19, HIGH);
+          				pinMode(RELAIS_MOTOR, HIGH);
         			}
         			else{
           				//12H
@@ -289,4 +289,5 @@ void loop(void){
   		if(projectRunning){
     		passTime();
   		}		
+  }
 }
