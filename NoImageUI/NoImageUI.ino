@@ -1,4 +1,4 @@
-
+#include <SPI.h>
 #include "Ucglib.h"
 #include "URTouch.h"
 #include <OneWire.h>
@@ -20,7 +20,7 @@ const PROGMEM byte T_DIN = 4;
 const PROGMEM byte T_DO = 5;
 const PROGMEM byte T_IRQ = 6;
 
-const PROGMEM byte RELAIS_MOTOR = 18;
+const PROGMEM byte RELAIS_MOTOR = 19;
 const PROGMEM byte RELAIS_HEAT = 17;
 const PROGMEM byte RELAIS_FAN = 16;
 const PROGMEM byte RELAIS_LED = 0;
@@ -36,11 +36,6 @@ URTouch touchscreen(T_CLK, T_CS, T_DIN, T_DO, T_IRQ);
 const PROGMEM byte TEMPERATURE_SENSOR = 15;
 OneWire oneWire(TEMPERATURE_SENSOR);
 DallasTemperature tempSensor(&oneWire);
-
-//Just more convienend variable names
-const unsigned char* FONT62 = ucg_font_logisoso62_tn;
-const unsigned char* FONT42 = ucg_font_fur42_tr;
-const unsigned char* FONT26 = ucg_font_logisoso26_tr;
 
 //Each enum represents one screen
 //Every screen is a set of render instructions combined into one function
@@ -64,8 +59,6 @@ int timeRemaining = 0;
 //Screen
 unsigned long screenPassed = 0;
 
-byte c = 0;
-
 screens currentScreen;
 
 char tmpS[0];
@@ -75,15 +68,31 @@ int getStringWidth(String s){
 	return display.getStrWidth(tmpS);
 }
 
+void setColorDark(){
+  
+}
+void setColorLight(){
+  display.setColor(180,180,180);
+}
+void setColorWhite(){
+  display.setColor(255, 255, 255);
+}
+
 void drawStartScreen(void){
   //Init Screen
   currentScreen = START;
   
   display.setColor(100, 100, 100);
-  display.setFont(FONT62);
+ 
   display.drawBox(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  display.setFont(ucg_font_fur42_tr);
+  setColorWhite();
+  //display.setFont(ucg_font_logisoso62_tn);
   display.setPrintPos(140,140);
-  display.print(F("Hi"));
+  //
+  display.print("Hi");
+  //display.setPrintPos(20, 220);
+  //display.print("Hi");
   
 }
 
@@ -94,63 +103,65 @@ void drawTimeSelectScreen(void){
 	//Time Select screen
 	currentScreen = TIMESELECT;
 	//Redraw background and clean everything
-	display.setColor(180, 180, 180);
+	setColorLight();
 	display.drawBox(3, 3, SCREEN_WIDTH-6, SCREEN_HEIGHT-6);
 	
 	//draw time up triangles
-	display.setColor(255, 255, 255);
-	display.drawTriangle(72,41,  104,18,  136,41);
-	display.drawTriangle(178,41,  210,18,  242,41);
+	setColorWhite();
+	display.drawTriangle(72+15,41,  104+15,18,  136+15,41);
+	display.drawTriangle(178-15,41,  210-15,18,  242-15,41);
 	//draw time font
-	display.setFont(FONT42);
-	display.setPrintPos(62,113);
-	display.print(timeSelectHours+":0"+timeSelectMinutes);
+	display.setFont(ucg_font_fur42_tr);
+	display.setPrintPos(80,100);
+	display.print(String(timeSelectHours)+":0"+String(timeSelectMinutes));
 	//draw time down triangles
-	display.drawTriangle(72, 126,  104,149, 136,126);
-	display.drawTriangle(178, 126,  210,149, 242,126);
+	display.drawTriangle(72+15, 126,  104+15,149, 136+15,126);
+	display.drawTriangle(178-15, 126,  210-15,149, 242-15,126);
 	//draw confirm Button
 	display.setColor(0, 255, 0);
 	display.drawRBox(105,170, 105,30, 7);
 	//draw OK textattr
 	display.setColor(255,255,255);
-	display.setPrintPos(144,195);
-	display.setFont(FONT26);
+	display.setPrintPos(140,197);
+	display.setFont(ucg_font_logisoso26_tr);
 	display.print(F("Ok"));
 	
 
 }
 void updateTimeSelectHours(){
-	display.setColor(180,180,180);
-	display.setFont(FONT42);
-	display.drawBox(62, 68, getStringWidth(String(timeSelectHours)),45);
-	display.setPrintPos(62, 113);
+	setColorLight();
+	display.setFont(ucg_font_fur42_tr);
+	display.drawBox(82, 48, 63,58);
+	display.setPrintPos(82, 103);
+  setColorWhite();
 	if(timeSelectHours > 9){
 		display.print(String(timeSelectHours));
 	}
 	else{
 		display.print("0"+ String(timeSelectHours));
 	}
-	
 	delay(400);
 }
 void updateTimeSelectMinutes(){
-	display.setColor(180,180,180);
-	display.setFont(FONT42);
-	display.drawBox(62+getStringWidth(String(timeSelectHours)+":"), 68, getStringWidth(String(timeSelectMinutes)), 45);
-	display.setPrintPos(62+2+getStringWidth(String(timeSelectHours)+":"), 113);
+  setColorLight();
+	display.setFont(ucg_font_fur42_tr);
+	display.drawBox(160, 48, 63, 58);
+	display.setPrintPos(160, 103);
+  setColorWhite();
 	if(timeSelectMinutes > 9){
 		display.print(String(timeSelectMinutes));
 	}
 	else{
 		display.print("0"+String(timeSelectMinutes));
 	}
+  delay(400);
 }
 
 void drawRunningScreen(void){
     currentScreen = RUNNING;
 
     display.setColor(100, 100, 100);
-    display.setFont(FONT26);
+    display.setFont(ucg_font_logisoso26_tr);
     display.drawBox(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     //Button PLAY/PAUSE
@@ -161,24 +172,24 @@ void drawRunningScreen(void){
 	  display.drawBox(87,42,9,27);
     
     //Button STOP
-    display.setColor(180, 180, 180); 
+    setColorLight();
     display.drawBox(3,SCREEN_HEIGHT/2+3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
     display.setColor(255,0,0);
     display.drawTetragon(60,156,  71,145,  92,145,  103,156);
 	  display.drawBox(60,157,43,19);
 	  display.drawTetragon(60,177,  103,177,  92,188,  71,188);
-	  display.setColor(255,255,255);
+	  setColorWhite();
 	  display.setPrintPos(54,223);
 	
 
    
 	//EMPTY
-	display.setColor(180, 180, 180); 
+	  display.setColor(180, 180, 180); 
     display.drawBox(SCREEN_WIDTH/2+3,3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
 	 //Button Manuell
-    display.setColor(180, 180, 180); 
+    setColorLight();
     display.drawBox(SCREEN_WIDTH/2+3,SCREEN_HEIGHT/2+3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
-    display.setColor(255,255,255);
+    setColorWhite();
     display.setPrintPos(180,190);
     display.print(F("manuell"));
 }
@@ -187,20 +198,14 @@ int hR;
 int mR;
 String outputString = "";
 void drawTimeRemaining(int tR){
-	currentScreen = TIMEREMAINING;
-  
-  	outputString= "";
-  	display.setFont(FONT62);
-  	display.setColor(0,0,0);
-  	display.drawBox(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
-  	hR = tR / 60;
-  	
-	Serial.println(hR);
-  	
+  currentScreen = TIMEREMAINING;
+  outputString= "";
+  display.setFont(ucg_font_fur42_tr);
+  display.setColor(0,0,0);
+  display.drawBox(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+  hR = tR / 60;
 	mR = tR - (hR * 60);
-  	
-	Serial.println(mR);
- 	 if(hR < 10){
+ 	if(hR < 10){
   		if(mR < 10){
      		outputString = "0"+String(hR) + ":0" + String(mR);
     	}
@@ -216,9 +221,6 @@ void drawTimeRemaining(int tR){
      		outputString = String(hR) +":"+ String(mR);;
     	}
   	}
- 
-  	Serial.println(outputString);
-  
 	display.setColor(255,255,255);
   	display.setPrintPos(70,140);
   	display.print(outputString);
@@ -246,7 +248,6 @@ void setup(void) {
   	touchscreen.setPrecision(PREC_HI);
 	
 	  tempSensor.begin();
-	  Serial.println(F("sc"));
 }
 
 int touchedX = 0;
@@ -272,28 +273,28 @@ void loop(void){
 			//Need to make sure we get valid inputs
 			if((touchedX > -1) && (touchedY > -1)){
 				//Hours up triangle
-      			if((touchedX > 72) && (touchedX < 136) && (touchedY > 18) && (touchedY < 41)){
+      			if((touchedX > 72+15) && (touchedX < 136+15) && (touchedY > 18) && (touchedY < 41)){
 					if(timeSelectHours < 23){
 						timeSelectHours++;
 						updateTimeSelectHours();
 					}
 				}
 				//Minutes up triangle
-				else if((touchedX > 178) && (touchedX < 242) && (touchedY > 18) && (touchedY < 41)){
-					if(timeSelectMinutes < 60){
+				else if((touchedX > 178-15) && (touchedX < 242-15) && (touchedY > 18) && (touchedY < 41)){
+					if(timeSelectMinutes < 45){
 						timeSelectMinutes += 15;
 						updateTimeSelectMinutes();
 					}	
 				}
 				//Hours down triangle
-				else if((touchedX > 72) && (touchedX < 136) && (touchedY > 126) && (touchedY < 149)){
+				else if((touchedX > 72+15) && (touchedX < 136+15) && (touchedY > 126) && (touchedY < 149)){
 					if(timeSelectHours > 0){
 						timeSelectHours--;
-						updateTimeSelectMinutes;
+						updateTimeSelectHours();
 					}
 				}
 				//Minutes down triangle
-				else if((touchedX > 178) && (touchedX < 242) && (touchedY > 126) && (touchedY < 149)){
+				else if((touchedX > 178-15) && (touchedX < 242-15) && (touchedY > 126) && (touchedY < 149)){
 					if(timeSelectMinutes > 0){
 						timeSelectMinutes -= 15;
 						updateTimeSelectMinutes();
@@ -306,6 +307,7 @@ void loop(void){
 					delay(500);
 					touchTimePassed = millis();
 					timePassed = millis();	
+          timeRemaining = (timeSelectHours*60) + timeSelectMinutes;
 				}		
 			}	
     	}
@@ -314,36 +316,40 @@ void loop(void){
     	if(millis() - touchTimePassed >= 15000){
       		//Aufruf timeRemaining Screen
       		drawTimeRemaining(timeRemaining);
-      		delay(500);
     	}
     	//Reset of counters when screen touched
     	if(touchscreen.dataAvailable()){
-			touchTimePassed = millis();
-			touchscreen.read();
-			touchedX = touchscreen.getX();
-			touchedY = touchscreen.getY();
-			if((touchedX > -1) && (touchedY > -1)){
-				//PLAY PAUSE BUTTON
-				//display.drawBox(3,3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
-				if((touchedX > 3) && (touchedX < SCREEN_WIDTH/2-3) && (touchedY > 3) && (touchedY < SCREEN_WIDTH/2-3)){
-					if(projectRunning){
-						//Redraw Green triangle
-						display.setColor(180,180,180);
-						display.drawBox(65, 42, 31, 27);
-						display.setColor(0, 255, 0);
-						display.drawTriangle(65, 42,  92,56,  65, 69);
-						projectRunning = false;
-					}
-					else{
-						//Redraw pause symbol
-						display.setColor(180,180,180);
-						display.drawBox(65, 42, 31, 27);
-						display.setColor(255,0,0);
-						display.drawBox(65,42,9,27);
-						display.drawBox(87,42,9,27);
-					}
-				}
-			}
+        
+			  touchTimePassed = millis();
+			  touchscreen.read();
+			  touchedX = touchscreen.getX();
+			  touchedY = touchscreen.getY();
+        Serial.println('a');
+			  if((touchedX > -1) && (touchedY > -1)){
+				  //PLAY PAUSE BUTTON
+				  //display.drawBox(3,3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
+				  if((touchedX > 3) && (touchedX < SCREEN_WIDTH/2-3) && (touchedY > 3) && (touchedY < SCREEN_WIDTH/2-3)){
+          Serial.println('b');
+					  if(projectRunning){
+						  //Redraw Green triangle
+						  setColorLight();
+              display.setColor(0, 255, 0);
+						  display.drawBox(65, 42, 31, 27);
+						  display.setColor(0, 255, 0);
+						  display.drawTriangle(65, 42,  92,56,  65, 69);
+						  projectRunning = false;
+					  }
+					  else{
+						  //Redraw pause symbol
+						  setColorLight();
+						  display.drawBox(65, 42, 31, 27);
+						  display.setColor(255,0,0);
+						  display.drawBox(65,42,9,27);
+						  display.drawBox(87,42,9,27);
+              projectRunning = true;
+					  }
+				  }
+			  }
     	}
   	}
   	else if(currentScreen == TIMEREMAINING){
@@ -352,10 +358,10 @@ void loop(void){
       		drawTimeRemaining(timeRemaining);
     	}
     	//Check if touched -> return to running screen
-   		if(touchscreen.dataAvailable()){
-			touchscreen.read();
-			drawRunningScreen();
-			touchTimePassed = millis();
+   		  if(touchscreen.dataAvailable()){
+			  touchscreen.read();
+			  drawRunningScreen();
+			  touchTimePassed = millis();
 		}
   	}
   	if(projectRunning){
@@ -364,9 +370,7 @@ void loop(void){
 		pinMode(RELAIS_MOTOR, HIGH);
 		//Check if heat is needed
 		tempSensor.requestTemperatures();
-    c = tempSensor.getTempCByIndex(0);
-    Serial.println(c);
-		if(c < 30){
+		if(tempSensor.getTempCByIndex(0) < 30){
 			pinMode(RELAIS_HEAT, HIGH);
 			pinMode(RELAIS_FAN, HIGH);
 		}
