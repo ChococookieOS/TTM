@@ -1,4 +1,4 @@
-#include <SPI.h>
+
 #include "Ucglib.h"
 #include "URTouch.h"
 #include <OneWire.h>
@@ -21,8 +21,8 @@ const PROGMEM byte T_DO = 5;
 const PROGMEM byte T_IRQ = 6;
 
 const PROGMEM byte RELAIS_MOTOR = 18;
-const PROGMEM byte RELAIS_HEAT = 0;
-const PROGMEM byte RELAIS_FAN = 0;
+const PROGMEM byte RELAIS_HEAT = 17;
+const PROGMEM byte RELAIS_FAN = 16;
 const PROGMEM byte RELAIS_LED = 0;
 
 
@@ -33,7 +33,7 @@ URTouch touchscreen(T_CLK, T_CS, T_DIN, T_DO, T_IRQ);
 
 
 
-const PROGMEM byte TEMPERATURE_SENSOR = 0;
+const PROGMEM byte TEMPERATURE_SENSOR = 15;
 OneWire oneWire(TEMPERATURE_SENSOR);
 DallasTemperature tempSensor(&oneWire);
 
@@ -64,8 +64,16 @@ int timeRemaining = 0;
 //Screen
 unsigned long screenPassed = 0;
 
+byte c = 0;
+
 screens currentScreen;
 
+char tmpS[0];
+int getStringWidth(String s){
+	tmpS[sizeof(s)];
+  s.toCharArray(tmpS, sizeof(tmpS));
+	return display.getStrWidth(tmpS);
+}
 
 void drawStartScreen(void){
   //Init Screen
@@ -81,6 +89,7 @@ void drawStartScreen(void){
 
 byte timeSelectHours = 12;
 byte timeSelectMinutes = 0;
+
 void drawTimeSelectScreen(void){
 	//Time Select screen
 	currentScreen = TIMESELECT;
@@ -95,7 +104,7 @@ void drawTimeSelectScreen(void){
 	//draw time font
 	display.setFont(FONT42);
 	display.setPrintPos(62,113);
-	display.print(F("12:00"));
+	display.print(timeSelectHours+":0"+timeSelectMinutes);
 	//draw time down triangles
 	display.drawTriangle(72, 126,  104,149, 136,126);
 	display.drawTriangle(178, 126,  210,149, 242,126);
@@ -113,7 +122,7 @@ void drawTimeSelectScreen(void){
 void updateTimeSelectHours(){
 	display.setColor(180,180,180);
 	display.setFont(FONT42);
-	display.drawBox(62, 68, display.getStrWidth(String(timeSelectHours)),45);
+	display.drawBox(62, 68, getStringWidth(String(timeSelectHours)),45);
 	display.setPrintPos(62, 113);
 	if(timeSelectHours > 9){
 		display.print(String(timeSelectHours));
@@ -127,8 +136,8 @@ void updateTimeSelectHours(){
 void updateTimeSelectMinutes(){
 	display.setColor(180,180,180);
 	display.setFont(FONT42);
-	display.drawBox(62+display.getStrWidth(String(timeSelectHours)+":"), 68, display.getStrWidth(timeSelectMinutes), 45);
-	display.setPrintPos(62+2+display.getStrWidth(String(timeSelectHours)+":"), 113);
+	display.drawBox(62+getStringWidth(String(timeSelectHours)+":"), 68, getStringWidth(String(timeSelectMinutes)), 45);
+	display.setPrintPos(62+2+getStringWidth(String(timeSelectHours)+":"), 113);
 	if(timeSelectMinutes > 9){
 		display.print(String(timeSelectMinutes));
 	}
@@ -147,19 +156,19 @@ void drawRunningScreen(void){
     //Button PLAY/PAUSE
     display.setColor(180, 180, 180); 
     display.drawBox(3,3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
-	display.setColor(255,0,0);
-	display.drawBox(65,42,9,27);
-	display.drawBox(87,42,9,27);
+	  display.setColor(255,0,0);
+	  display.drawBox(65,42,9,27);
+	  display.drawBox(87,42,9,27);
     
     //Button STOP
     display.setColor(180, 180, 180); 
     display.drawBox(3,SCREEN_HEIGHT/2+3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
     display.setColor(255,0,0);
     display.drawTetragon(60,156,  71,145,  92,145,  103,156);
-	display.drawBox(60,157,43,19);
-	display.drawTetragon(60,177,  103,177,  92,188,  71,188);
-	display.setColor(255,255,255);
-	display.setPrintPos(54,223);
+	  display.drawBox(60,157,43,19);
+	  display.drawTetragon(60,177,  103,177,  92,188,  71,188);
+	  display.setColor(255,255,255);
+	  display.setPrintPos(54,223);
 	
 
    
@@ -171,7 +180,7 @@ void drawRunningScreen(void){
     display.drawBox(SCREEN_WIDTH/2+3,SCREEN_HEIGHT/2+3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
     display.setColor(255,255,255);
     display.setPrintPos(180,190);
-    display.print("manuell");
+    display.print(F("manuell"));
 }
 
 int hR;
@@ -231,24 +240,23 @@ void setup(void) {
   	display.begin(UCG_FONT_MODE_TRANSPARENT);
   	display.setRotate90();
   	display.clearScreen();
-	Serial.println(F("Screen init"));
   	drawStartScreen();
   
   	touchscreen.InitTouch();
   	touchscreen.setPrecision(PREC_HI);
-	Serial.println(F("Touchscreen init"));
 	
-	tempSensor.begin();
-	
+	  tempSensor.begin();
+	  Serial.println(F("sc"));
 }
 
 int touchedX = 0;
 int touchedY = 0;
 
 void loop(void){
+	
 	//DEBUG
-	tempSensor.requestTemperatures();
-	Serial.println(tempSensor.getTempCByIndex(0));
+	//tempSensor.requestTemperatures();
+	//Serial.println(tempSensor.getTempCByIndex(0));
 	//DEBUG
 	
 	if(currentScreen == START){
@@ -271,9 +279,9 @@ void loop(void){
 					}
 				}
 				//Minutes up triangle
-				else if((touchedX > 178) && (touchedX < 242) && (touchedY > 18) && (touchedY < 41){
+				else if((touchedX > 178) && (touchedX < 242) && (touchedY > 18) && (touchedY < 41)){
 					if(timeSelectMinutes < 60){
-						timeSelectMinutes += 15:
+						timeSelectMinutes += 15;
 						updateTimeSelectMinutes();
 					}	
 				}
@@ -287,7 +295,7 @@ void loop(void){
 				//Minutes down triangle
 				else if((touchedX > 178) && (touchedX < 242) && (touchedY > 126) && (touchedY < 149)){
 					if(timeSelectMinutes > 0){
-						timeSelectMinutes -= 15:
+						timeSelectMinutes -= 15;
 						updateTimeSelectMinutes();
 					}
 				}
@@ -314,7 +322,7 @@ void loop(void){
 			touchscreen.read();
 			touchedX = touchscreen.getX();
 			touchedY = touchscreen.getY();
-			if((touchedX > -1) && (touchedY > -1){
+			if((touchedX > -1) && (touchedY > -1)){
 				//PLAY PAUSE BUTTON
 				//display.drawBox(3,3,SCREEN_WIDTH/2-6,SCREEN_HEIGHT/2 -6);
 				if((touchedX > 3) && (touchedX < SCREEN_WIDTH/2-3) && (touchedY > 3) && (touchedY < SCREEN_WIDTH/2-3)){
@@ -355,8 +363,10 @@ void loop(void){
 		//Turn the motor on
 		pinMode(RELAIS_MOTOR, HIGH);
 		//Check if heat is needed
-		tempSensor.requestTemperatures() 
-		if(tempSensor.getTempCByIndex(0) < 30){
+		tempSensor.requestTemperatures();
+    c = tempSensor.getTempCByIndex(0);
+    Serial.println(c);
+		if(c < 30){
 			pinMode(RELAIS_HEAT, HIGH);
 			pinMode(RELAIS_FAN, HIGH);
 		}
